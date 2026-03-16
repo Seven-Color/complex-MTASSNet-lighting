@@ -1,0 +1,111 @@
+# Complex-MTASSNet-lighting Configuration
+
+# Model Architecture
+model:
+  name: "Complex_MTASS"
+  
+  # Encoder/Decoder
+  fft_size: 512
+  hop_size: 256
+  window: "hann"
+  
+  # Stage 1: Multi-Task Separation (简化版 - 从15个减少到6个)
+  stage1:
+    hidden_channels: 1024
+    ms_resblock_count: 6
+    ms_resblock_dilations: [1, 3, 5, 7, 11, 13]
+    dropout: 0.2
+  
+  # Stage 2: Residual Repair
+  stage2:
+    enabled: true
+    repeats: 3
+    num_blocks: 8
+    hidden_channels: 256
+    dropout: 0.2
+  
+  # Output
+  num_sources: 3
+
+# Training
+training:
+  seed: 42
+  epochs: 100
+  batch_size: 8
+  gradient_accumulation: 4
+  
+  optimizer: "adamw"
+  learning_rate: 0.001
+  weight_decay: 0.01
+  betas: [0.9, 0.999]
+  
+  scheduler: "cosine"
+  warmup_epochs: 5
+  min_lr: 1.0e-6
+  
+  loss:
+    mse: 1.0
+    snr: 0.5
+    sisnr: 0.5
+  
+  stage1_freeze_epochs: 20
+  use_amp: true
+  amp_dtype: "float16"
+  clip_grad_norm: 5.0
+  patience: 15
+  save_best: true
+
+# Data (Online Generation)
+data:
+  sample_rate: 16000
+  audio_length: 4.0
+  
+  speech_dir: "./dataset/speech"
+  noise_dir: "./dataset/noise" 
+  music_dir: "./dataset/music"
+  
+  augmentation:
+    enabled: true
+    pitch_shift: [-2, 2]
+    time_stretch: [0.9, 1.1]
+    add_noise: true
+    noise_level: [-40, -20]
+    reverb: false
+    
+  mixing:
+    snr_range: [-5, 20]
+    num_sources: 3
+    max_sources: 2
+    
+  num_workers: 4
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: true
+
+# STFT Settings
+stft:
+  fft_size: 512
+  hop_size: 256
+  window: "hann"
+  center: true
+  normalized: false
+  onesided: true
+
+# Checkpoint
+checkpoint:
+  save_dir: "./checkpoints"
+  save_interval: 5
+  keep_last: 3
+  
+# Logging
+logging:
+  log_dir: "./logs"
+  tensorboard: true
+  wandb: false
+  log_interval: 100
+
+# Distributed Training
+distributed:
+  enabled: true
+  backend: "nccl"
+  find_unused_parameters: false
