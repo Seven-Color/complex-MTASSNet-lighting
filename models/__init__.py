@@ -1,4 +1,8 @@
 """Complex-MTASS 模型模块"""
-from .complex_mtass import ComplexMTASS, count_parameters, MSResBlock, GTCNBlock
+from .complex_mtass_optimized import OptimizedComplexMTASS as ComplexMTASS
+from .complex_mtass_optimized import count_parameters, OptimizedMSResBlock, SEBlock, MultiHeadSelfAttention
 
-__all__ = ['ComplexMTASS', 'count_parameters', 'MSResBlock', 'GTCNBlock']
+# 兼容旧版
+from .complex_mtass import MSResBlock, GTCNBlock
+
+__all__ = ['ComplexMTASS', 'count_parameters', 'MSResBlock', 'GTCNBlock', 'SEBlock', 'MultiHeadSelfAttention']
